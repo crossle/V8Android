@@ -17,15 +17,12 @@
 
 #include <jni.h>
 #include <v8.h>
+#include <string.h>
 #include <android/log.h>
 
 /**
- * initialize the V8 execution environment for v8 scripts
- */
-extern "C" void Java_me_crossle_v8android_MainActivity_nativeInit(JNIEnv * env, jobject obj);
-/**
  * execute a script from native
  */
-extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv * env, jobject obj, jstring name, jstring message);
+extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv * env, jobject obj, jstring code);
 
 #endif // _V8ANDROID_H

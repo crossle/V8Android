@@ -13,57 +13,38 @@
  */
 
 #include "v8android.h"
-#include <string.h>
 
-v8::Persistent<v8::Context> PrimaryContext;
+using namespace v8;
 
-extern "C" void Java_me_crossle_v8android_MainActivity_nativeInit(JNIEnv * env, jobject obj) {
-    // log what's happening
-    __android_log_write(ANDROID_LOG_DEBUG, "V8 in NDK", "INITIALIZING V8");
-    // can be placed at any scope resolution level, this will be redeclared in any V8 aware function
+extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv * env, jobject obj, jstring code) {
 
-    using namespace v8;
+    // Get the default Isolate created at startup.
+    Isolate* isolate = Isolate::GetCurrent();
 
-    // create the scope and context
-    // governs local handles
-    HandleScope localscope;
-    // object template used to create the global object of our context
-    Local<ObjectTemplate> global = ObjectTemplate::New();
-    // declaration and instantiation of the primary context
-    PrimaryContext = Context::New(NULL, global);
-}
+    // Create a stack-allocated handle scope.
+    HandleScope handle_scope(isolate);
 
-/**
- *
- */
-extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv * env, jobject obj, jstring name, jstring message) {
-    using namespace v8;
-    HandleScope scope;
-    TryCatch tc;
-    Context::Scope context_scope(PrimaryContext);
-    jstring retval;
+    // Create a new context.
+    Persistent<Context> context = Context::New();
+    // Enter the created context for compiling and
+    // running the hello world script.
+    Context::Scope context_scope(context);
+
     jboolean isCopy;
-
-    Handle<String> nme = String::New(env->GetStringChars(name, &isCopy));
-    Handle<String> cmd = String::New(env->GetStringChars(message, &isCopy));
-
-    Handle<Script> script = Script::Compile(cmd, nme);
+    Handle<String> source = String::New(env->GetStringChars(code, &isCopy));
+    Handle<Script> script = Script::Compile(source);
 
     if (script.IsEmpty()) {
         return env->NewStringUTF("Error: script is empty!");
     }
-
     __android_log_write(ANDROID_LOG_DEBUG, "V8Android", "Hello world V8");
 
-    Local<Value> result = script->Run();
+    Handle<Value> result = script->Run();
+    // Dispose the persistent context.
+    context.Dispose(isolate);
 
-    if (result.IsEmpty()) {
-        __android_log_write(ANDROID_LOG_DEBUG, "V8Android", "RESULT IS EMPTY");
-        String::Utf8Value error(tc.Exception());
-        __android_log_write(ANDROID_LOG_DEBUG, "V8Android", *error);
-    }
     String::Utf8Value retstr(result);
-    retval = env->NewStringUTF(*retstr);
+    jstring retval = env->NewStringUTF(*retstr);
     return retval;
 }
 
