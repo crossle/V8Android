@@ -16,6 +16,9 @@
 
 using namespace v8;
 
+// callback function
+static Handle<Value> readUrl(const Arguments & args);
+
 extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv *env, jobject obj, jstring code, jstring function, jstring url) {
 
     // Get the default Isolate created at startup.
@@ -24,38 +27,46 @@ extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv *env,
     // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
 
-    // Create a new context.
-    Persistent<Context> context = Context::New();
-    // Enter the created context for compiling
-    Context::Scope context_scope(context);
+    Handle<ObjectTemplate> global_templ = ObjectTemplate::New() ;
+    global_templ->Set(String::New("readUrl"),
+                      FunctionTemplate::New(readUrl)) ;
 
-    jboolean isCopy;
-    Handle<String> source = String::New(env->GetStringChars(code, &isCopy));
+    Persistent<Context> exec_context = Context::New(NULL, global_templ);
+    Context::Scope context_scope(exec_context);
+
+    Handle<String> js_source = String::New(env->GetStringChars(code, NULL));
     Handle<String> js_function_name = String::New(env->GetStringChars(function, NULL));
-    Handle<Value> js_url = String::New(env->GetStringChars(url, NULL));
-    Handle<Script> js_script = Script::Compile(source);
+    Handle<Value> js_param = String::New(env->GetStringChars(url, NULL));
 
-    if (js_script.IsEmpty()) {
+    Handle<Script> js_compiled = Script::Compile(js_source);
+
+    if (js_compiled.IsEmpty()) {
         return env->NewStringUTF("Error: script is empty!");
     }
     __android_log_write(ANDROID_LOG_DEBUG, "V8Android", "Hello world V8");
 
-    Handle<Value> result = js_script->Run();
+    js_compiled->Run();
+
     Handle<Value> js_result;
-    Handle<Value> js_function_val = context->Global()->Get(js_function_name);
+    Handle<Value> js_function_val = exec_context->Global()->Get(js_function_name);
     if (js_function_val->IsFunction()) {
       Handle<Function> js_func = Handle<Function>::Cast(js_function_val);
       int len = 1;
       Handle<Value> argm[len];
-      argm[0] = js_url;
-      js_result = js_func->Call(context->Global(), len, argm);
+      argm[0] = js_param;
+      js_result = js_func->Call(exec_context->Global(), len, argm);
     }
 
     // Dispose the persistent context.
-    context.Dispose(isolate);
+    exec_context.Dispose(isolate);
 
     String::Utf8Value retstr(js_result);
     jstring retval = env->NewStringUTF(*retstr);
     return retval;
 }
 
+static Handle<Value> readUrl(const Arguments & args) {
+  if (args.Length() == 1)
+    return args[0]->ToString();
+  return Undefined();
+}

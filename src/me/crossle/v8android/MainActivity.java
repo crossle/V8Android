@@ -30,8 +30,8 @@ public class MainActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    String url = "hello v8 pk";
-    String okjs = "function main(url) { var fo = \"HelloWorld V8 in Android\"; return url; }";
+    String url = "www.jaycn.com";
+    String okjs = "function main(url) { var fo = \"HelloWorld V8 in Android\"; return readUrl(url); }";
     String result = runScript(okjs, "main", url);
     TextView textView = (TextView) findViewById(R.id.tv_hello);
     textView.setText(result);
