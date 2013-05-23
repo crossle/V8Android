@@ -2,11 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="me.crossle.v8android"
           android:versionCode="1"
+          android:installLocation="auto"
           android:versionName="1.0">
 
     <uses-sdk
             android:minSdkVersion="9"
-            android:targetSdkVersion="16"/>
+            android:targetSdkVersion="17"/>
 
     <application
             android:allowBackup="true"

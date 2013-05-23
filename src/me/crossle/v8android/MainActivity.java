@@ -30,11 +30,14 @@ public class MainActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    String okjs = "function main() { var fo = \"HelloWorld V8 in Android\"; return fo; } \n main();";
-    String result = runScript(okjs);
+    String url = "hello v8 pk";
+    String okjs = "function main(url) { var fo = \"HelloWorld V8 in Android\"; return url; }";
+    String result = runScript(okjs, "main", url);
     TextView textView = (TextView) findViewById(R.id.tv_hello);
     textView.setText(result);
     Log.d("V8Android", result);
+
+    Log.e("V8Android", getApplicationInfo().nativeLibraryDir);
 
   }
 
@@ -46,5 +49,5 @@ public class MainActivity extends Activity {
     return true;
   }
 
-  private native String runScript(String code);
+  private native String runScript(String code, String function, String url);
 }

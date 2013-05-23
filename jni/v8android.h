@@ -23,6 +23,6 @@
 /**
  * execute a script from native
  */
-extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv * env, jobject obj, jstring code);
+extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv * env, jobject obj, jstring code, jstring function, jstring url);
 
 #endif // _V8ANDROID_H

@@ -16,7 +16,7 @@
 
 using namespace v8;
 
-extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv * env, jobject obj, jstring code) {
+extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv *env, jobject obj, jstring code, jstring function, jstring url) {
 
     // Get the default Isolate created at startup.
     Isolate* isolate = Isolate::GetCurrent();
@@ -26,24 +26,35 @@ extern "C" jstring Java_me_crossle_v8android_MainActivity_runScript(JNIEnv * env
 
     // Create a new context.
     Persistent<Context> context = Context::New();
-    // Enter the created context for compiling and
-    // running the hello world script.
+    // Enter the created context for compiling
     Context::Scope context_scope(context);
 
     jboolean isCopy;
     Handle<String> source = String::New(env->GetStringChars(code, &isCopy));
-    Handle<Script> script = Script::Compile(source);
+    Handle<String> js_function_name = String::New(env->GetStringChars(function, NULL));
+    Handle<Value> js_url = String::New(env->GetStringChars(url, NULL));
+    Handle<Script> js_script = Script::Compile(source);
 
-    if (script.IsEmpty()) {
+    if (js_script.IsEmpty()) {
         return env->NewStringUTF("Error: script is empty!");
     }
     __android_log_write(ANDROID_LOG_DEBUG, "V8Android", "Hello world V8");
 
-    Handle<Value> result = script->Run();
+    Handle<Value> result = js_script->Run();
+    Handle<Value> js_result;
+    Handle<Value> js_function_val = context->Global()->Get(js_function_name);
+    if (js_function_val->IsFunction()) {
+      Handle<Function> js_func = Handle<Function>::Cast(js_function_val);
+      int len = 1;
+      Handle<Value> argm[len];
+      argm[0] = js_url;
+      js_result = js_func->Call(context->Global(), len, argm);
+    }
+
     // Dispose the persistent context.
     context.Dispose(isolate);
 
-    String::Utf8Value retstr(result);
+    String::Utf8Value retstr(js_result);
     jstring retval = env->NewStringUTF(*retstr);
     return retval;
 }
