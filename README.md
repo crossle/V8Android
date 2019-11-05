@@ -1,5 +1,10 @@
+Depcreated use https://github.com/square/duktape-android
+------------
+
 Use V8 in Android
 =================
+
+https://github.com/square/duktape-android
 
 Compile V8 on Android
 ---------------------
